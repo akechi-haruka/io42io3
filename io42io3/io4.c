@@ -44,13 +44,14 @@ HRESULT io4_hid_init(){
 	return S_OK;
 }
 
-HRESULT write_hid_report(unsigned char cmd, char* data, int len){
+HRESULT write_hid_report(unsigned char cmd, void* data, int len){
 
     if (handle == NULL){
         return E_HANDLE;
     }
 
-	unsigned char buf[len + 2] = {0};
+	unsigned char buf[len + 2];
+	memset(buf, 0, len + 2);
     buf[0] = 0x10;
     buf[1] = cmd;
     memcpy(buf + 2, data, len);
@@ -93,9 +94,9 @@ HRESULT io4_hid_poll(struct JVSUSBReportIn* report){
 
 HRESULT io4_clear_board_status(){
     char* buf[0x40] = {0};
-    return write_hid_report(0x03, buf, 0x40);
+    return write_hid_report(0x03, (void*)buf, 0x40);
 }
 
 HRESULT io4_set_gpio(struct JVSUSBReportGPIOOut report){
-    return write_hid_report(0x04, report, sizeof(report));
+    return write_hid_report(0x04, (void*)&report, sizeof(report));
 }
