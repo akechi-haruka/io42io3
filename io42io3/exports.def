@@ -1,0 +1,18 @@
+LIBRARY io42io3
+
+EXPORTS
+    kantai_io_get_api_version
+    kantai_io_jvs_init=shared_init
+    kantai_io_jvs_poll
+    kantai_io_jvs_read_coin_counter=shared_jvs_io3_read_coin_counter
+    kantai_io_jvs_read_steering
+    kantai_io_jvs_read_telegraph
+    kantai_io_jvs_write_gpio=shared_write_gpio
+	
+; minimum export definitions for a game:
+
+;    game_get_api_version (this must always be a custom implementation per game)
+;    game_jvs_init=shared_init
+;    game_jvs_poll=shared_poll
+;    game_jvs_read_coin_counter=shared_jvs_io3_read_coin_counter
+;    game_jvs_write_gpio=shared_write_gpio
