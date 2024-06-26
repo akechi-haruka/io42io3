@@ -16,6 +16,7 @@ struct JVSUSBReportIn report;
 
 static int coin_counter = 0;
 static bool coin_counter_pressed = false;
+static uint32_t last_gpio = 0;
 
 BOOL WINAPI DllMain(HMODULE mod, DWORD cause, void *ctx)
 {
@@ -136,8 +137,24 @@ void shared_poll(uint8_t *opbtn_out, uint8_t *gamebtn_out)
 }
 
 void shared_write_gpio(uint32_t bytes){
-    dprintf("IO42IO3: GPIO: %d\n", bytes);
+    //dprintf("IO42IO3: GPIO: %d\n", bytes);
+
+    if (bytes == last_gpio){
+        return;
+    }
+
     struct JVSUSBReportGPIOOut report;
-    // TODO: report
+    memset(&report, 0, sizeof(report));
+
+    for (int i = 0; i < MAX_GPIO; i++){
+        int gpio = cfg.gpio[i];
+        if (gpio > -1){
+            int offset = gpio / 8;
+            int index = gpio % 8;
+            report.led[offset] |= ((((bytes >> i) & 1) != 0) << index);
+        }
+    }
+
+    last_gpio = bytes;
     io4_set_gpio(report);
 }

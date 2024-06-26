@@ -9,7 +9,7 @@
 
 #define MAX_PLAYER_BUTTONS 8
 #define MAX_OPERATOR_BUTTONS 8
-#define MAX_GPIO 24
+#define MAX_GPIO 32
 
 struct io42io3_config {
     char inputs[MAX_PLAYER_BUTTONS];

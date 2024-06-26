@@ -38,7 +38,8 @@ struct JVSUSBReportIn {
 };
 
 struct JVSUSBReportGPIOOut {
-    char unknown[72]; // TODO
+    unsigned char led[4];
+    char unknown[58];
 };
 
 HRESULT io4_hid_init();
