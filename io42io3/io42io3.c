@@ -1,9 +1,7 @@
 #include <windows.h>
 
-#include <process.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdlib.h>
 #include <winuser.h>
 
 #include "io42io3/io42io3.h"
@@ -20,7 +18,6 @@ static uint32_t last_gpio = 0;
 
 BOOL WINAPI DllMain(HMODULE mod, DWORD cause, void *ctx)
 {
-    HRESULT hr;
 
     if (cause != DLL_PROCESS_ATTACH) {
         return TRUE;
@@ -33,7 +30,7 @@ BOOL WINAPI DllMain(HMODULE mod, DWORD cause, void *ctx)
 
     dprintf("IO42IO3: Loaded\n");
 
-    return SUCCEEDED(hr);
+    return TRUE;
 }
 
 struct io42io3_config shared_get_config(){
@@ -72,7 +69,14 @@ HRESULT shared_init(void)
 
     CreateThread(NULL, 0, polling_thread, NULL, 0, NULL);
 
-    return io4_clear_board_status();
+    hr = io4_clear_board_status();
+    if (FAILED(hr)){
+        return hr;
+    }
+
+
+    struct JVSUSBReportGPIOOut clear_leds = {};
+    return io4_set_gpio(clear_leds);
 }
 
 void shared_jvs_io3_read_coin_counter(uint16_t *out)
@@ -143,18 +147,18 @@ void shared_write_gpio(uint32_t bytes){
         return;
     }
 
-    struct JVSUSBReportGPIOOut report;
-    memset(&report, 0, sizeof(report));
+    struct JVSUSBReportGPIOOut ledreport = {};
+    memset(&ledreport, 0, sizeof(ledreport));
 
     for (int i = 0; i < MAX_GPIO; i++){
         int gpio = cfg.gpio[i];
         if (gpio > -1){
             int offset = gpio / 8;
             int index = gpio % 8;
-            report.led[offset] |= ((((bytes >> i) & 1) != 0) << index);
+            ledreport.led[offset] |= ((((bytes >> i) & 1) != 0) << index);
         }
     }
 
     last_gpio = bytes;
-    io4_set_gpio(report);
+    io4_set_gpio(ledreport);
 }

@@ -68,7 +68,7 @@ HRESULT io4_hid_poll(struct JVSUSBReportIn* report){
         return E_HANDLE;
     }
 
-    long start = GetTickCount();
+    DWORD start = GetTickCount();
 
     unsigned char buf[IO4_REPORT_LEN + 1];
     int res = hid_read(handle, buf, IO4_REPORT_LEN + 1);
@@ -84,7 +84,7 @@ HRESULT io4_hid_poll(struct JVSUSBReportIn* report){
         dprintf("IO4: WARN: invalid report %d\n", buf[0]);
         return S_FALSE;
     }
-    long end = GetTickCount();
+    DWORD end = GetTickCount();
     if (end - start >= 20){
         dprintf("IO4: WARN: slow poll: %ld\n", end - start);
     }
