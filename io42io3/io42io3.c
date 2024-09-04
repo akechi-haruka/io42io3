@@ -18,7 +18,7 @@ static int coin_counter = 0;
 static bool coin_counter_pressed = false;
 static uint32_t last_gpio = 0;
 
-BOOL WINAPI DllMain(HMODULE mod, DWORD cause, void *ctx)
+BOOL __attribute__((unused)) WINAPI DllMain(__attribute__((unused)) HMODULE mod, DWORD cause, __attribute__((unused)) void *ctx)
 {
 
     if (cause != DLL_PROCESS_ATTACH) {
@@ -45,7 +45,7 @@ struct JVSUSBReportIn shared_get_report(){
     return report;
 }
 
-DWORD WINAPI polling_thread(void* data) {
+DWORD WINAPI polling_thread(__attribute__((unused)) void* data) {
     dprintf("IO42IO3: I/O Polling Thread started\n");
     while (true){
 

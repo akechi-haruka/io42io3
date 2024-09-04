@@ -12,9 +12,9 @@
 #define MAX_GPIO 32
 
 struct io42io3_config {
-    char inputs[MAX_PLAYER_BUTTONS];
-    char opinputs[MAX_OPERATOR_BUTTONS];
-    char gpio[MAX_GPIO];
+    uint8_t inputs[MAX_PLAYER_BUTTONS];
+    uint8_t opinputs[MAX_OPERATOR_BUTTONS];
+    uint8_t gpio[MAX_GPIO];
 
     int coin_keyboard_button;
     int coin_chute;

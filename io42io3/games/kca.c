@@ -55,7 +55,7 @@ void kantai_io_jvs_poll(uint8_t *opbtn_out, uint8_t *gamebtn_out)
 
     int adc = report.adcs[cfg.kca.steering_adc];
 
-    int adc_direction = 0;
+    uint32_t adc_direction = 0;
     if (adc > USHRT_MAX / 2 + cfg.kca.steering_deadzone) {
         adc_direction = cfg.kca.steering_speed;
     } else if (adc < USHRT_MAX / 2 - cfg.kca.steering_deadzone) {
