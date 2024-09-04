@@ -11,6 +11,8 @@
 
 #include "subprojects/segapi/api/api.h"
 
+#define MIN_API_VER 0x010101
+
 struct io42io3_config cfg;
 struct JVSUSBReportIn report;
 
@@ -26,6 +28,11 @@ BOOL __attribute__((unused)) WINAPI DllMain(__attribute__((unused)) HMODULE mod,
     }
 
     dprintf("IO42IO3: Initializing\n");
+
+    if (api_get_version() <= MIN_API_VER){
+        dprintf("io42io3: API dll is outdated! At least v.%x is required, DLL is v.%x", MIN_API_VER, api_get_version());
+        return FALSE;
+    }
 
     io42io3_config_load(&cfg, ".\\io42io3.ini");
     game_kca_config_load(&cfg.kca, ".\\io42io3.ini");
