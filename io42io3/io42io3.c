@@ -29,7 +29,7 @@ BOOL __attribute__((unused)) WINAPI DllMain(__attribute__((unused)) HMODULE mod,
 
     dprintf("IO42IO3: Initializing\n");
 
-    if (api_get_version() <= MIN_API_VER){
+    if (api_get_version() < MIN_API_VER){
         dprintf("io42io3: API dll is outdated! At least v.%x is required, DLL is v.%x", MIN_API_VER, api_get_version());
         return FALSE;
     }
