@@ -38,5 +38,8 @@ hidapi_dep = declare_dependency(
 meson.override_dependency('hidapi', hidapi_dep)
 
 inc = include_directories('.')
+ws2_lib = cc.find_library('ws2_32')
+
+segapi = subproject('segapi')
 
 subdir('io42io3')

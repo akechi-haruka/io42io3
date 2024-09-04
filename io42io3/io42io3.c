@@ -9,6 +9,8 @@
 #include "io42io3/io4.h"
 #include "io42io3/util/dprintf.h"
 
+#include "subprojects/segapi/api/api.h"
+
 struct io42io3_config cfg;
 struct JVSUSBReportIn report;
 
@@ -27,6 +29,8 @@ BOOL WINAPI DllMain(HMODULE mod, DWORD cause, void *ctx)
 
     io42io3_config_load(&cfg, ".\\io42io3.ini");
     game_kca_config_load(&cfg.kca, ".\\io42io3.ini");
+
+    api_init(".\\io42io3.ini");
 
     dprintf("IO42IO3: Loaded\n");
 
@@ -90,6 +94,11 @@ void shared_jvs_io3_read_coin_counter(uint16_t *out)
         *out = report.chutes[cfg.coin_chute];
 
     } else {
+
+        int api_credits = api_get_and_clear_credits();
+        if (api_credits > 0){
+            coin_counter += api_credits;
+        }
 
         if (GetAsyncKeyState(cfg.coin_keyboard_button) & 0x8000) {
             if (!coin_counter_pressed) {
