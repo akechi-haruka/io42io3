@@ -9,6 +9,9 @@
 #include "io42io3/io4.h"
 #include "io42io3/util/dprintf.h"
 
+#include <io42io3/games/kca.h>
+#include <io42io3/games/kemono.h>
+
 #include "subprojects/segapi/api/api.h"
 
 #define MIN_API_VER 0x010101
@@ -36,6 +39,7 @@ BOOL __attribute__((unused)) WINAPI DllMain(__attribute__((unused)) HMODULE mod,
 
     io42io3_config_load(&cfg, ".\\io42io3.ini");
     game_kca_config_load(&cfg.kca, ".\\io42io3.ini");
+    game_kemono_config_load(&cfg.kemono, ".\\io42io3.ini");
 
     api_init(".\\io42io3.ini");
 
@@ -177,4 +181,12 @@ void shared_write_gpio(uint32_t bytes){
 
     last_gpio = bytes;
     io4_set_gpio(ledreport);
+}
+
+HRESULT shared_led_init(void) {
+    return S_OK;
+}
+
+void shared_led_set_colors(uint8_t board, uint8_t *rgb){
+
 }

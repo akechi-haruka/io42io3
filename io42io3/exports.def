@@ -8,6 +8,14 @@ EXPORTS
     kantai_io_jvs_read_steering
     kantai_io_jvs_read_telegraph
     kantai_io_jvs_write_gpio=shared_write_gpio
+
+    kemono_io_get_api_version
+    kemono_io_jvs_read_coin_counter=shared_jvs_io3_read_coin_counter
+    kemono_io_init=shared_init
+    kemono_io_poll=shared_poll
+    kemono_io_jvs_write_gpio=shared_write_gpio
+    kemono_io_led_init=shared_led_init
+    kemono_io_led_set_colors=shared_led_set_colors
 	
 ; minimum export definitions for a game:
 
@@ -16,3 +24,5 @@ EXPORTS
 ;    game_jvs_poll=shared_poll
 ;    game_jvs_read_coin_counter=shared_jvs_io3_read_coin_counter
 ;    game_jvs_write_gpio=shared_write_gpio
+;    game_led_init=shared_led_init
+;    game_led_set_colors=shared_led_set_colors

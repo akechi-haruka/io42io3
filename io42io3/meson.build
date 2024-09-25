@@ -20,6 +20,8 @@ io42io3 = shared_library(
         'io4.h',
         'games/kca.c',
         'games/kca.h',
+        'games/kemono.c',
+        'games/kemono.h',
         'util/dprintf.c',
         'util/dprintf.h',
     ],

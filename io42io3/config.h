@@ -6,8 +6,9 @@
 #include <stdbool.h>
 
 #include "io42io3/games/kca.h"
+#include "io42io3/games/kemono.h"
 
-#define MAX_PLAYER_BUTTONS 8
+#define MAX_PLAYER_BUTTONS 16
 #define MAX_OPERATOR_BUTTONS 8
 #define MAX_GPIO 32
 
@@ -20,6 +21,7 @@ struct io42io3_config {
     int coin_chute;
 
     struct kca_config kca;
+    struct kemono_config kemono;
 };
 
 void io42io3_config_load(
