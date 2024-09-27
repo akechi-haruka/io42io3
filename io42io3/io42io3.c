@@ -19,12 +19,13 @@
 struct io42io3_config cfg;
 struct JVSUSBReportIn report;
 
+static bool inited = false;
 static int coin_counter = 0;
 static bool coin_counter_pressed = false;
 static uint32_t last_gpio = 0;
 
-BOOL __attribute__((unused)) WINAPI DllMain(__attribute__((unused)) HMODULE mod, DWORD cause, __attribute__((unused)) void *ctx)
-{
+BOOL __attribute__((unused)) WINAPI
+DllMain(__attribute__((unused)) HMODULE mod, DWORD cause, __attribute__((unused)) void *ctx) {
 
     if (cause != DLL_PROCESS_ATTACH) {
         return TRUE;
@@ -32,8 +33,8 @@ BOOL __attribute__((unused)) WINAPI DllMain(__attribute__((unused)) HMODULE mod,
 
     dprintf("IO42IO3: Initializing\n");
 
-    if (api_get_version() < MIN_API_VER){
-        dprintf("io42io3: API dll is outdated! At least v.%x is required, DLL is v.%x", MIN_API_VER, api_get_version());
+    if (api_get_version() < MIN_API_VER) {
+        dprintf("IO42IO3: API dll is outdated! At least v.%x is required, DLL is v.%x", MIN_API_VER, api_get_version());
         return FALSE;
     }
 
@@ -48,66 +49,72 @@ BOOL __attribute__((unused)) WINAPI DllMain(__attribute__((unused)) HMODULE mod,
     return TRUE;
 }
 
-struct io42io3_config shared_get_config(){
+struct io42io3_config shared_get_config() {
     return cfg;
 }
 
-struct JVSUSBReportIn shared_get_report(){
+struct JVSUSBReportIn shared_get_report() {
     return report;
 }
 
-DWORD WINAPI polling_thread(__attribute__((unused)) void* data) {
+DWORD WINAPI polling_thread(__attribute__((unused)) void *data) {
     dprintf("IO42IO3: I/O Polling Thread started\n");
-    while (true){
+    while (true) {
 
-        if (FAILED(io4_hid_poll(&report))){
+        if (FAILED(io4_hid_poll(&report))) {
             dprintf("IO42IO3: ERROR: I/O polling failed!\n");
             return 1;
         }
 
-        Sleep(1);
+        if (cfg.sleep) {
+            Sleep(1);
+        }
     }
 
     dprintf("IO42IO3: I/O Polling Thread stopped\n");
     return 0;
 }
 
-HRESULT shared_init(void)
-{
+HRESULT shared_init(void) {
+
+    if (inited){
+        dprintf("IO42IO3: already initialized!\n");
+        return S_FALSE;
+    }
     dprintf("IO42IO3: JVS Init called\n");
 
     HRESULT hr = io4_hid_init();
 
-    if (FAILED(hr)){
+    if (FAILED(hr)) {
         return hr;
     }
 
     CreateThread(NULL, 0, polling_thread, NULL, 0, NULL);
 
     hr = io4_clear_board_status();
-    if (FAILED(hr)){
+    if (FAILED(hr)) {
         return hr;
     }
 
+    inited = true;
 
     struct JVSUSBReportGPIOOut clear_leds = {};
     return io4_set_gpio(clear_leds);
 }
 
-void shared_jvs_io3_read_coin_counter(uint16_t *out)
-{
+void shared_jvs_io3_read_coin_counter(uint16_t *out) {
     if (out == NULL) {
         return;
     }
 
-    if (cfg.coin_chute > -1){
+    if (cfg.coin_chute > -1) {
 
         *out = report.chutes[cfg.coin_chute];
 
     } else {
 
         int api_credits = api_get_and_clear_credits();
-        if (api_credits > 0){
+        if (api_credits > 0) {
             coin_counter += api_credits;
         }
 
@@ -125,54 +132,74 @@ void shared_jvs_io3_read_coin_counter(uint16_t *out)
     }
 }
 
-inline int shared_get_io4_btn(int btn){
+inline int shared_get_io4_btn(int btn) {
     int p = btn / 16;
     int b = btn % 16;
     int v = ((report.buttons[p] >> b) & 1);
     return v != 0;
 }
 
+inline uint16_t shared_get_io4_adc(int adc) {
+    return report.adcs[adc];
+}
 
-void shared_poll(uint8_t *opbtn_out, uint8_t *gamebtn_out)
-{
+static int8_t button_test = -1;
+
+void shared_poll(uint8_t *opbtn_out, uint8_t *gamebtn_out) {
     uint8_t opbtn;
     uint8_t gamebtn;
 
     opbtn = 0;
     gamebtn = 0;
 
-    for (int i = 0; i < MAX_OPERATOR_BUTTONS; i++){
+    for (int i = 0; i < MAX_OPERATOR_BUTTONS; i++) {
         int btn = cfg.opinputs[i];
-        if (btn > -1){
+        if (btn > -1) {
             opbtn |= (shared_get_io4_btn(btn) << i);
         }
     }
 
-    for (int i = 0; i < MAX_PLAYER_BUTTONS; i++){
-        int btn = cfg.inputs[i];
-        if (btn > -1){
-            gamebtn |= (shared_get_io4_btn(btn) << i);
+    if (GetAsyncKeyState(VK_NUMPAD9) & 0x8000) {
+        button_test++;
+        dprintf("NOW TESTING IO3 OUTPUT %d\n", button_test);
+        Sleep(3000);
+    }
+    if (button_test > -1) {
+        gamebtn |= (1 << button_test);
+    }
+
+    for (int i = 0; i < MAX_PLAYER_BUTTONS; i++) {
+        int8_t adc = cfg.adc2btn[i];
+        if (adc > -1) {
+            uint16_t val = shared_get_io4_adc(adc);
+            if (val < cfg.adcmin[i] || val > cfg.adcmax[i]) {
+                gamebtn |= (1 << i);
+            }
+        } else {
+            int btn = cfg.inputs[i];
+            if (btn > -1) {
+                gamebtn |= (shared_get_io4_btn(btn) << i);
+            }
         }
     }
 
     *opbtn_out = opbtn;
     *gamebtn_out = gamebtn;
-
 }
 
-void shared_write_gpio(uint32_t bytes){
+void shared_write_gpio(uint32_t bytes) {
     //dprintf("IO42IO3: GPIO: %d\n", bytes);
 
-    if (bytes == last_gpio){
+    if (bytes == last_gpio) {
         return;
     }
 
     struct JVSUSBReportGPIOOut ledreport = {};
     memset(&ledreport, 0, sizeof(ledreport));
 
-    for (int i = 0; i < MAX_GPIO; i++){
+    for (int i = 0; i < MAX_GPIO; i++) {
         int gpio = cfg.gpio[i];
-        if (gpio > -1){
+        if (gpio > -1) {
             int offset = gpio / 8;
             int index = gpio % 8;
             ledreport.led[offset] |= ((((bytes >> i) & 1) != 0) << index);
@@ -187,6 +214,6 @@ HRESULT shared_led_init(void) {
     return S_OK;
 }
 
-void shared_led_set_colors(uint8_t board, uint8_t *rgb){
+void shared_led_set_colors(uint8_t board, uint8_t *rgb) {
 
 }

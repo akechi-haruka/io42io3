@@ -2,6 +2,8 @@
 #include "hidapi.h"
 #include "io42io3/util/dprintf.h"
 
+#include <windows.h>
+
 #define MAX_STR 255
 #define IO4_REPORT_LEN 63
 #define IO4_IN_REPORT_ID 0x01
